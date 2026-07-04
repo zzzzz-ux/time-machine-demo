@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>时间穿梭机</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    color: #333;
+}
+
+/* ===== 主体边框 ===== */
+.container {
+    width: 480px;
+    max-width: 92vw;
+    padding: 36px 32px;
+    text-align: center;
+
+    border: 2px solid #ddd;
+    border-radius: 24px;
+    background: #ffffff;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.title {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 28px;
+}
+
+.time-selector {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.time-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 30px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-btn:hover {
+    background: #f0f0f0;
+}
+
+.time-btn.active {
+    border-color: #333;
+    background: #333;
+    color: #fff;
+}
+
+.custom-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+}
+
+.custom-input {
+    width: 140px;
+    padding: 10px;
+    font-size: 16px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    outline: none;
+}
+
+.launch-btn {
+    width: 100%;
+    padding: 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 40px;
+    background: #111;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.launch-btn:hover {
+    background: #000;
+}
+
+/* ===== 模态框通用 ===== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal-box {
+    width: 380px;
+    max-width: 90vw;
+    padding: 36px 28px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    text-align: center;
+}
+
+.modal-title {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.modal-countdown {
+    font-size: 72px;
+    font-weight: 700;
+}
+
+.modal-unit {
+    font-size: 14px;
+    color: #999;
+    margin-bottom: 20px;
+}
+
+.modal-progress {
+    height: 6px;
+    background: #eee;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.modal-progress-bar {
+    height: 100%;
+    width: 100%;
+    background: #111;
+    transition: width 0.3s linear;
+}
+
+.modal-status {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 16px;
+}
+
+.vip-btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 30px;
+    border: 1px solid #ff9800;
+    background: #fff8e1;
+    color: #e65100;
+    cursor: pointer;
+}
+
+.vip-btn:hover {
+    background: #ffecb3;
+}
+
+.modal-btn {
+    margin-top: 16px;
+    padding: 10px 24px;
+    font-size: 14px;
+    border-radius: 30px;
+    border: 1px solid #ccc;
+    background: #fafafa;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+/* ===== VIP 充值弹窗 ===== */
+.qr-img {
+    width: 220px;
+    margin-top: 16px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+}
+
+.pay-hint {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #999;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="title">时间穿梭机</div>
+    <div class="subtitle">选择穿越时长</div>
+
+    <!-- ✅ 时间选项已修改 -->
+    <div class="time-selector">
+        <button class="time-btn active" data-seconds="5">5 秒</button>
+        <button class="time-btn" data-seconds="86400">1 天</button>
+        <button class="time-btn" data-seconds="7776000">3 个月</button>
+        <button class="time-btn" data-seconds="315360000">10 年</button>
+    </div>
+
+    <div class="custom-row">
+        <label>自定义</label>
+        <input type="number" id="customTime" class="custom-input" value="5" min="1" />
+        <span>秒</span>
+    </div>
+
+    <button class="launch-btn" id="launchBtn">启动穿梭</button>
+</div>
+
+<!-- 倒计时弹窗 -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <div class="modal-title">时空隧道开启</div>
+        <div class="modal-countdown" id="countdownDisplay">10</div>
+        <div class="modal-unit">秒</div>
+
+        <div class="modal-progress">
+            <div class="modal-progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="modal-status" id="modalStatus">正在穿越</div>
+
+        <button class="vip-btn" id="vipBtn">充值 VIP 加速穿越</button>
+        <button class="modal-btn hidden" id="modalCloseBtn">关闭</button>
+    </div>
+</div>
+
+<!-- VIP 充值弹窗 -->
+<div class="modal-overlay" id="vipModal">
+    <div class="modal-box">
+        <div class="modal-title">升级 VIP</div>
+        <div class="modal-status">享受穿越加速特权</div>
+
+        <button class="modal-btn" id="payBtn">充值 20 元成为 VIP</button>
+
+        <img src="img1.jpg" alt="扫码支付" class="qr-img hidden" id="qrImg" />
+        <div class="pay-hint hidden" id="payHint">扫码完成支付</div>
+
+        <button class="modal-btn" id="vipCloseBtn">取消</button>
+    </div>
+</div>
+
+<script>
+(function () {
+    const timeBtns = document.querySelectorAll(".time-btn");
+    const customInput = document.getElementById("customTime");
+    const launchBtn = document.getElementById("launchBtn");
+
+    const modalOverlay = document.getElementById("modalOverlay");
+    const countdownDisplay = document.getElementById("countdownDisplay");
+    const progressBar = document.getElementById("progressBar");
+    const modalStatus = document.getElementById("modalStatus");
+    const modalCloseBtn = document.getElementById("modalCloseBtn");
+    const vipBtn = document.getElementById("vipBtn");
+
+    const vipModal = document.getElementById("vipModal");
+    const payBtn = document.getElementById("payBtn");
+    const qrImg = document.getElementById("qrImg");
+    const payHint = document.getElementById("payHint");
+    const vipCloseBtn = document.getElementById("vipCloseBtn");
+
+    let selectedSeconds = 5;
+    let timer = null;
+    let running = false;
+
+    /* ✅ 选择时间 */
+    timeBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            timeBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedSeconds = Number(btn.dataset.seconds);
+            customInput.value = selectedSeconds;
+        });
+    });
+
+    customInput.addEventListener("change", () => {
+        selectedSeconds = Number(customInput.value);
+        timeBtns.forEach(b => b.classList.remove("active"));
+    });
+
+    launchBtn.addEventListener("click", () => startCountdown(selectedSeconds));
+
+    /* VIP 弹窗 */
+    vipBtn.addEventListener("click", () => {
+        vipModal.classList.add("show");
+        payBtn.classList.remove("hidden");
+        qrImg.classList.add("hidden");
+        payHint.classList.add("hidden");
+    });
+
+    payBtn.addEventListener("click", () => {
+        payBtn.classList.add("hidden");
+        qrImg.classList.remove("hidden");
+        payHint.classList.remove("hidden");
+    });
+
+    vipCloseBtn.addEventListener("click", () => {
+        vipModal.classList.remove("show");
+    });
+
+    modalCloseBtn.addEventListener("click", closeModal);
+
+    function startCountdown(seconds) {
+        if (running) return;
+        running = true;
+
+        modalOverlay.classList.add("show");
+        modalCloseBtn.classList.add("hidden");
+        vipBtn.classList.remove("hidden");
+
+        let start = Date.now();
+
+        timer = setInterval(() => {
+            let left = seconds - (Date.now() - start) / 1000;
+            if (left <= 0) {
+                clearInterval(timer);
+                modalStatus.textContent = "穿越完成";
+                vipBtn.classList.add("hidden");
+                modalCloseBtn.classList.remove("hidden");
+                running = false;
+            } else {
+                countdownDisplay.textContent = Math.ceil(left);
+                progressBar.style.width = (left / seconds * 100) + "%";
+            }
+        }, 100);
+    }
+
+    function closeModal() {
+        modalOverlay.classList.remove("show");
+        clearInterval(timer);
+        running = false;
+        modalCloseBtn.classList.add("hidden");
+    }
+})();
+</script>
+
+</body>
+</html>
